@@ -215,6 +215,9 @@
   .plan-item.missed{border-color:#fbd5d5;background:#fef6f6}
   .plan-item.missed .p-title{color:var(--red)}
   .plan-item.missed .p-time{color:var(--red);background:#fee}
+  .plan-item.overdue{border-color:#fed7aa;background:#fff7ed}
+  .plan-item.overdue .p-time{color:var(--orange);background:#fff7ed}
+  .p-state.overdue{color:var(--orange)}
   .plan-item.done .p-time{color:var(--green);background:#e8f7ed}
   .p-check.locked{opacity:.35;cursor:not-allowed;background:#f3f5f4;border-color:var(--line)}
   .p-state{font-size:11px;margin-top:3px;font-weight:500}
@@ -901,10 +904,10 @@ function renderPlan(){
       const ck=rec[p.id];
       const ps=toMin(p.start), pe=toMin(p.end);
       let state, clickable, stateLabel;
-      if(ck){state='done';clickable=false;stateLabel='✅ 已完成'}
+      if(ck){state='done';clickable=true;stateLabel='✅ 已完成（点取消）'}
       else if(nm<ps){state='pending';clickable=false;stateLabel='⏳ 待开始'}
       else if(nm>=ps&&nm<pe){state='active';clickable=true;stateLabel='🔴 进行中 · 可打卡'}
-      else {state='missed';clickable=false;stateLabel='❌ 未完成'}
+      else {state='overdue';clickable=true;stateLabel='⏰ 已过时段 · 可补打'}
       const isActive=i===activeIdx;
       return `<div class="plan-item ${ck?'done':''} ${state} ${isActive?'now':''}">
         <div class="p-check ${clickable?'':'locked'}" ${clickable?`onclick="togglePlan('${p.id}')"`:''}>
@@ -921,9 +924,6 @@ function renderPlan(){
 }
 function togglePlan(id){
   const d=getData();const rec=planRecord();
-  const p=planItems.find(x=>x.id===id);
-  const nm=nowMin();
-  if(nm<toMin(p.start)||nm>=toMin(p.end)){return}
   rec[id]=!rec[id];save(d);renderPlan();
 }
 renderPlan();
