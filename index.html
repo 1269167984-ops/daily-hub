@@ -923,8 +923,12 @@ function renderPlan(){
     }).join('');
 }
 function togglePlan(id){
-  const d=getData();const rec=planRecord();
-  rec[id]=!rec[id];save(d);renderPlan();
+  const d=getData();
+  const k=todayKey();
+  if(!d.plans)d.plans={};
+  if(!d.plans[k])d.plans[k]={};
+  d.plans[k][id]=!d.plans[k][id];
+  save(d);renderPlan();
 }
 renderPlan();
 // 每分钟刷新一次，让状态随时间自动变化
