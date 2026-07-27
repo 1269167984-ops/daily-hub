@@ -169,6 +169,9 @@
   .tag.eng{background:#e8f0ff;color:#3b6fe0}
   .tag.custom{background:#e6f3ec;color:#1f7a4d}
   .del-btn{background:none;border:none;color:#c5c9d6;cursor:pointer;padding:6px;border-radius:6px;transition:.15s}
+  .speak-btn{background:var(--accent-soft);border:1px solid var(--accent-2);color:var(--accent);cursor:pointer;padding:6px 8px;border-radius:8px;font-size:14px;transition:.15s;flex-shrink:0;line-height:1}
+  .speak-btn:hover{background:var(--accent);color:#fff;transform:scale(1.1)}
+  .speak-btn:active{transform:scale(0.95)}
   .del-btn:hover{color:var(--red);background:#fef2f2}
 
   .add-task{display:flex;gap:10px;margin-top:14px}
@@ -491,8 +494,18 @@
           <div id="sentenceCard" style="background:#f8f9fc;border-radius:10px;padding:14px">
             <div style="font-size:15px;font-weight:600;margin-bottom:6px" id="senEn"></div>
             <div style="font-size:13px;color:var(--muted)" id="senCn"></div>
-            <button class="btn btn-ghost" style="margin-top:10px;padding:8px 14px;font-size:12px" onclick="speakSentence()">🔊 听发音</button>
-            <button class="btn btn-ghost" style="margin-top:10px;padding:8px 14px;font-size:12px;margin-left:6px" onclick="nextSentence()">下一句 →</button>
+            <div style="margin-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-ghost speak-big" onclick="speakSentence()" style="padding:8px 14px;font-size:12px;background:var(--accent-soft);color:var(--accent);border-color:var(--accent-2)">🔊 听发音</button>
+              <button class="btn btn-ghost" onclick="speakSentenceSlow()" style="padding:8px 12px;font-size:12px">🐢 慢速</button>
+              <button class="btn btn-ghost" onclick="nextSentence()" style="padding:8px 12px;font-size:12px">下一句 →</button>
+              <div style="display:flex;align-items:center;gap:4px;margin-left:auto">
+                <span style="font-size:11px;color:var(--muted)">口音</span>
+                <select id="accentSel" onchange="changeAccent()" style="padding:5px 8px;border:1px solid var(--line);border-radius:6px;font-size:11px;outline:none">
+                  <option value="en-US">🇺🇸 美音</option>
+                  <option value="en-GB">🇬🇧 英音</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
         <div class="card">
@@ -1389,12 +1402,31 @@ function sendChat(){
 function showHint(){
   document.getElementById('feedback').innerHTML='💡 '+scenes[sceneIdx].hint+' <br>例：'+sentences[senIdx].en;
 }
-function speakSentence(){
-  if('speechSynthesis' in window){
-    const u=new SpeechSynthesisUtterance(sentences[senIdx].en);
-    u.lang='en-US';u.rate=0.85;
-    speechSynthesis.speak(u);
-  }else alert('浏览器不支持语音合成');
+let speakAccent='en-US', speakRate=0.85;
+function changeAccent(){
+  speakAccent=document.getElementById('accentSel').value;
+}
+function doSpeak(text, rate){
+  if(!('speechSynthesis' in window)){alert('浏览器不支持语音合成，建议用Chrome或Safari');return}
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang=speakAccent;
+  u.rate=rate||speakRate;
+  // 尝试选对应口音的语音
+  const voices=speechSynthesis.getVoices();
+  const v=voices.find(x=>x.lang===speakAccent);
+  if(v)u.voice=v;
+  u.onstart=()=>{};
+  u.onerror=(e)=>{};
+  speechSynthesis.speak(u);
+}
+function speakSentence(){doSpeak(sentences[senIdx].en,0.85)}
+function speakSentenceSlow(){doSpeak(sentences[senIdx].en,0.55)}
+function speakWord(w){doSpeak(w,0.8)}
+// 预加载语音列表
+if('speechSynthesis' in window){
+  speechSynthesis.onvoiceschanged=()=>{speechSynthesis.getVoices()};
+  speechSynthesis.getVoices();
 }
 function nextSentence(){
   senIdx=(senIdx+1)%sentences.length;
@@ -1405,11 +1437,17 @@ function renderSentence(){
   document.getElementById('senCn').textContent=sentences[senIdx].cn;
 }
 function renderVocab(){
-  document.getElementById('vocabList').innerHTML=vocabs.map(v=>`
-    <div style="padding:8px 0;border-bottom:1px dashed var(--line)">
-      <div style="font-size:14px;font-weight:600">${v.w} <span style="font-size:11px;color:var(--muted);font-weight:400">${v.p}</span></div>
-      <div style="font-size:12px;color:#4a4f5e;margin-top:2px">${v.m}</div>
-      <div style="font-size:11px;color:var(--accent);margin-top:2px;font-style:italic">e.g. ${v.e}</div>
+  document.getElementById('vocabList').innerHTML=vocabs.map((v,i)=>`
+    <div style="padding:10px 0;border-bottom:1px dashed var(--line)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:600">${v.w} <span style="font-size:11px;color:var(--muted);font-weight:400">${v.p}</span></div>
+          <div style="font-size:12px;color:#4a4f5e;margin-top:2px">${v.m}</div>
+          <div style="font-size:11px;color:var(--accent);margin-top:2px;font-style:italic">e.g. ${v.e}</div>
+        </div>
+        <button class="speak-btn" onclick="speakWord('${v.w}')" title="听单词发音">🔊</button>
+        <button class="speak-btn" onclick="speakWord('${v.e}')" title="听例句发音">💬</button>
+      </div>
     </div>`).join('');
 }
 resetChat();
