@@ -451,43 +451,25 @@
 
   <!-- ===== 高级英语私教 ===== -->
   <section class="view" id="view-eng">
-    <!-- 私教对话区 -->
+    <!-- 头部 -->
     <div class="card" style="margin-bottom:16px;background:linear-gradient(135deg,#e6f3ec,#f0f7f2);border-color:#c9e3d3">
       <div style="display:flex;align-items:center;gap:12px">
         <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#1f7a4d,#2da066);display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px">🎓</div>
         <div>
-          <div style="font-weight:700;font-size:16px">AI 英语私教 · Tutor</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">基础口语 · 场景对话 · 发音纠正 · 语法点拨</div>
+          <div style="font-weight:700;font-size:16px">每日英语练习</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">跟着视频练口语 · 句型跟读 · 每日词汇 · 发音纠正</div>
         </div>
       </div>
     </div>
 
-    <div class="grid g-2">
-      <!-- 左：对话练习 -->
-      <div class="card">
-        <div class="sec-title"><span class="dot"></span>场景对话练习</div>
-        <div style="margin-bottom:12px">
-          <label style="font-size:12px;color:var(--muted)">选择场景：</label>
-          <select id="sceneSel" onchange="loadScene()" style="padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;margin-left:8px">
-            <option value="0">🛒 超市购物</option>
-            <option value="1">☕ 咖啡店点单</option>
-            <option value="2">👋 新朋友自我介绍</option>
-            <option value="3">📞 电话预约</option>
-            <option value="4">✈️ 机场值机</option>
-            <option value="5">🏠 租房咨询</option>
-          </select>
-        </div>
-        <div id="chatBox" style="background:#f8f9fc;border-radius:12px;padding:14px;height:280px;overflow-y:auto;margin-bottom:12px"></div>
-        <div style="display:flex;gap:8px">
-          <input id="chatInput" placeholder="用英语回复私教…" style="flex:1;padding:11px 14px;border:1px solid var(--line);border-radius:10px;font-size:14px;outline:none" onkeydown="if(event.key==='Enter')sendChat()">
-          <button class="btn btn-primary" onclick="sendChat()">发送</button>
-          <button class="btn btn-ghost" onclick="showHint()" title="提示">💡</button>
-          <button class="btn btn-ghost" onclick="resetChat()" title="重置">↻</button>
-        </div>
-        <div id="feedback" style="margin-top:10px;font-size:12px;color:var(--muted);min-height:18px"></div>
-      </div>
+    <!-- B站视频练习库 -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="sec-title"><span class="dot" style="background:var(--accent)"></span>📺 每日跟练视频库</div>
+      <div id="engVideoGrid" style="display:flex;flex-direction:column;gap:16px"></div>
+    </div>
 
-      <!-- 右：今日学习内容 -->
+    <div class="grid g-2">
+      <!-- 左：句型 + 词汇 -->
       <div style="display:flex;flex-direction:column;gap:16px">
         <div class="card">
           <div class="sec-title"><span class="dot"></span>今日核心句型</div>
@@ -512,6 +494,27 @@
           <div class="sec-title"><span class="dot"></span>高频词汇 · 每日 5 词</div>
           <div id="vocabList"></div>
         </div>
+      </div>
+
+      <!-- 右：练习方法 + 小贴士 -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card">
+          <div class="sec-title"><span class="dot" style="background:var(--orange)"></span>📋 每日 30 分钟练习法</div>
+          <div style="font-size:13px;line-height:1.9;color:#4a4f5e">
+            <div style="margin-bottom:10px;padding:10px;background:#f8f9fc;border-radius:8px">
+              <b>🕐 第 1-10 分钟：看视频跟读</b><br>
+              选一个上方视频，开着字幕跟读 2 遍，注意发音和语调
+            </div>
+            <div style="margin-bottom:10px;padding:10px;background:#f8f9fc;border-radius:8px">
+              <b>🕐 第 11-20 分钟：句型练习</b><br>
+              用今日核心句型造 3 个自己的句子，点🔊对比发音
+            </div>
+            <div style="padding:10px;background:#f8f9fc;border-radius:8px">
+              <b>🕐 第 21-30 分钟：词汇巩固</b><br>
+              把 5 个高频词各念 5 遍，用每个词造 1 个句子
+            </div>
+          </div>
+        </div>
         <div class="card">
           <div class="sec-title"><span class="dot"></span>口语小贴士</div>
           <ul style="font-size:12px;line-height:1.9;color:#4a4f5e;list-style:none">
@@ -519,6 +522,7 @@
             <li>🐌 放慢速度，准确 &gt; 流利</li>
             <li>🔁 用新词造 3 个句子才算掌握</li>
             <li>📅 每天 30min &gt; 一周一次 3 小时</li>
+            <li>🎥 跟着视频练，比干看书记得牢 10 倍</li>
           </ul>
         </div>
       </div>
@@ -1311,39 +1315,40 @@ renderVideo();
 renderPetVideos();
 renderFormula();
 
-/* ============ 英语私教 ============ */
-const scenes=[
-  {name:'超市购物',greeting:"Hi! Welcome to Fresh Market. What are you looking for today?",hint:"Try: I'm looking for… / Do you have…?",replys:[
-    "Great choice! The apples are fresh today. How many would you like?",
-    "Sure, they're in aisle 3. Anything else I can help with?",
-    "That'll be $4.50. Would you like a bag?"
+/* ============ 每日英语练习 ============ */
+const engVideos=[
+  {cat:'零基础入门',color:'#1f7a4d',items:[
+    {bv:'BV1Nb3E6xE1V',title:'每天30分钟口语训练，说一口地道英文',desc:'保姆级口语练习素材，日日精进，适合零基础跟读'},
+    {bv:'BV1XoqpYXE5q',title:'52集日常英语情景对话（全）',desc:'全方位覆盖生活场景，刷完口语直接无敌，词汇量暴涨'},
   ]},
-  {name:'咖啡店点单',greeting:"Good morning! Welcome to Brew & Bean. What can I get for you?",hint:"Try: I'd like a… / Can I have a… to go?",replys:[
-    "Sure! What size would you like — small, medium or large?",
-    "Great. Hot or iced?",
-    "Anything to eat with that? We have fresh croissants today."
+  {cat:'情景对话',color:'#3b82f6',items:[
+    {bv:'BV1UL411P71M',title:'全站最全英语情景对话 · 中英双字',desc:'覆盖生活中各种场景，日常最实用口语表达'},
   ]},
-  {name:'自我介绍',greeting:"Hey, I don't think we've met. I'm Sarah. Nice to meet you!",hint:"Try: Hi, I'm… / Nice to meet you too. / I work as…",replys:[
-    "That's cool! So what do you do for fun?",
-    "Oh interesting! How long have you been doing that?",
-    "We should grab coffee sometime and chat more!"
-  ]},
-  {name:'电话预约',greeting:"Hello, this is Bright Dental Clinic. How can I help you?",hint:"Try: I'd like to book an appointment for… / Is… available?",replys:[
-    "Sure. Dr. Lee is available on Tuesday at 2pm or Thursday at 10am. Which works?",
-    "No problem. Could I have your name and phone number?",
-    "Great, you're all set. See you then!"
-  ]},
-  {name:'机场值机',greeting:"Good afternoon! May I see your passport and ticket, please?",hint:"Try: Here you go. / Can I have a window seat?",replys:[
-    "Thank you. Are you checking any bags today?",
-    "Sure, I have a window seat in row 14. Would that be okay?",
-    "Here's your boarding pass. Gate 22, boarding at 3:40pm. Have a great flight!"
-  ]},
-  {name:'租房咨询',greeting:"Hi! Thanks for asking about the apartment. What would you like to know?",hint:"Try: Is the rent…? / Does it include…? / When can I move in?",replys:[
-    "The rent is $1,200 a month, including water but not electricity.",
-    "Yes, pets are allowed. There's a small pet deposit of $200.",
-    "You can move in from the 1st of next month. Would you like to schedule a viewing?"
+  {cat:'跟读模仿',color:'#ec4899',items:[
+    {bv:'BV1Nb3E6xE1V',title:'100句实用英语口语 · 零基础',desc:'最流行实用的100句，初学者必掌握，跟读训练'},
   ]},
 ];
+function renderEngVideos(){
+  document.getElementById('engVideoGrid').innerHTML=engVideos.map(g=>`
+    <div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="width:10px;height:10px;border-radius:50%;background:${g.color}"></span>
+        <b style="font-size:14px">${g.cat}</b>
+      </div>
+      <div class="grid g-2" style="gap:12px">
+        ${g.items.map(v=>`
+          <div style="border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)">
+            <div style="position:relative;padding-top:56.25%">
+              <iframe src="https://player.bilibili.com/player.html?bvid=${v.bv}&autoplay=0&high_quality=1" style="position:absolute;inset:0;width:100%;height:100%;border:0" allowfullscreen scrolling="no" sandbox="allow-same-origin allow-scripts allow-popups"></iframe>
+            </div>
+            <div style="padding:10px 12px">
+              <div style="font-weight:600;font-size:13px">${v.title}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">${v.desc}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
 const sentences=[
   {en:"Could you say that again, please?",cn:"能请你再说一遍吗？"},
   {en:"I'm still learning English, so please bear with me.",cn:"我还在学英语，请多多包涵。"},
@@ -1361,47 +1366,7 @@ const vocabs=[
   {w:"delicious",p:"/dɪˈlɪʃəs/",m:"美味的",e:"This is really delicious!"},
   {w:"comfortable",p:"/ˈkʌmftəbl/",m:"舒适的",e:"The seat is very comfortable."},
 ];
-let sceneIdx=0, msgCount=0, senIdx=0;
-
-function loadScene(){
-  sceneIdx=parseInt(document.getElementById('sceneSel').value);
-  resetChat();
-}
-function resetChat(){
-  const s=scenes[sceneIdx];
-  msgCount=0;
-  const box=document.getElementById('chatBox');
-  box.innerHTML=`<div style="margin-bottom:10px"><div style="font-size:11px;color:var(--muted);margin-bottom:3px">私教 · ${s.name}</div><div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;display:inline-block;max-width:85%">${s.greeting}</div></div>`;
-  document.getElementById('feedback').textContent='💡 提示：'+s.hint;
-  document.getElementById('chatBox').scrollTop=9999;
-}
-function sendChat(){
-  const inp=document.getElementById('chatInput');
-  const v=inp.value.trim();if(!v)return;
-  const box=document.getElementById('chatBox');
-  box.innerHTML+=`<div style="margin-bottom:10px;text-align:right"><div style="background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:13px;display:inline-block;max-width:85%;text-align:left">${v}</div></div>`;
-  inp.value='';
-  // 简单反馈
-  const fb=document.getElementById('feedback');
-  const issues=[];
-  if(!/[A-Z]/.test(v)) issues.push('句首大写');
-  if(v.length>0 && !/[.?!]$/.test(v)) issues.push('句末标点');
-  if(v.split(' ').length<3) issues.push('可再丰富表达');
-  if(issues.length) fb.innerHTML='📝 建议：'+issues.join('、')+'。';
-  else fb.innerHTML='✅ 表达不错！继续保持。';
-  // 私教回复
-  const s=scenes[sceneIdx];
-  const reply=s.replys[msgCount % s.replys.length];
-  msgCount++;
-  setTimeout(()=>{
-    box.innerHTML+=`<div style="margin-bottom:10px"><div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;display:inline-block;max-width:85%">${reply}</div></div>`;
-    box.scrollTop=9999;
-  },500);
-  box.scrollTop=9999;
-}
-function showHint(){
-  document.getElementById('feedback').innerHTML='💡 '+scenes[sceneIdx].hint+' <br>例：'+sentences[senIdx].en;
-}
+let senIdx=0;
 let speakAccent='en-US', speakRate=0.85;
 function changeAccent(){
   speakAccent=document.getElementById('accentSel').value;
@@ -1450,7 +1415,7 @@ function renderVocab(){
       </div>
     </div>`).join('');
 }
-resetChat();
+renderEngVideos();
 renderSentence();
 renderVocab();
 
